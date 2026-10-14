@@ -9,7 +9,7 @@ let doc: Document; let ctx: ToolCtx; let patches = 0;
 beforeEach(() => {
   doc = new Document('generated-200.xer', new Uint8Array(readFileSync('samples/generated-200.xer')));
   patches = 0; doc.on('patch', () => patches++);
-  ctx = { doc: () => doc, turn: () => 't1', exportDir: 'data/exports' };
+  ctx = { doc: () => doc, turn: () => 't1', saveExport: async (name, bytes) => ({ path: name, bytes: bytes.length }) };
 });
 
 describe('agent tools', () => {
@@ -78,10 +78,10 @@ describe('blank project', () => {
     const { blankProject, clndrData } = await import('../lib/schedule/blank.ts');
     expect(clndrData(8, [1, 2, 3, 4, 5])).toContain('(0||2()((0||0(s|08:00|f|12:00)())(0||1(s|13:00|f|17:00)())))');
     expect(clndrData(10, [1, 2, 3, 4, 5, 6])).toContain('(0||7()((0||0(s|08:00|f|13:00)())(0||1(s|14:00|f|19:00)())))');
-    const { file, bytes } = blankProject({ name: 'Test Kitchen Remodel', start: '2027-02-01' });
+    const { file, bytes } = blankProject({ name: 'Test Kitchen Remodel', start: '2027-02-01' }, new Uint8Array(readFileSync('samples/PredecessorCalendar.xer')));
     expect(file).toBe('tkr.xer');
     const d = new Document(file, bytes);
-    const c: ToolCtx = { doc: () => d, turn: () => 't', exportDir: 'data/exports' };
+    const c: ToolCtx = { doc: () => d, turn: () => 't', saveExport: async (name, bytes) => ({ path: name, bytes: bytes.length }) };
     expect(d.snapshot().tasks.length).toBe(0);
     expect(d.snapshot().project.dataDate).toBe('2027-02-01 00:00');
     expect(d.snapshot().calendars[0]!.dayHours).toBe(8);

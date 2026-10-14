@@ -91,14 +91,14 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/new' && req.method === 'POST') {
       const o = JSON.parse((await body(req)).toString('utf8') || '{}');
       if (!o.name || !o.start) return json(res, 400, { error: 'name and start are required' });
-      const { file, bytes } = blankProject({ name: String(o.name), code: o.code ? String(o.code) : undefined, start: String(o.start), hoursPerDay: o.hoursPerDay ? Number(o.hoursPerDay) : undefined, workDays: Array.isArray(o.workDays) ? o.workDays.map(Number) : undefined });
+      const { file, bytes } = blankProject({ name: String(o.name), code: o.code ? String(o.code) : undefined, start: String(o.start), hoursPerDay: o.hoursPerDay ? Number(o.hoursPerDay) : undefined, workDays: Array.isArray(o.workDays) ? o.workDays.map(Number) : undefined }, new Uint8Array(await readFile(path.join(SAMPLES, 'PredecessorCalendar.xer'))));
       await writeFile(path.join(UPLOADS, file), bytes);
       const d = await openFile(file, bytes);
       return json(res, 200, d.snapshot());
     }
     if (p === '/api/export') {
       if (!doc) return json(res, 404, { error: 'no file open' });
-      const name = (url.searchParams.get('name') || path.basename(doc.file, '.xer') + '-edited').replace(/[^\w.-]+/g, '_').replace(/\.xer$/i, '') + '.xer';
+      const name = doc.exportName(url.searchParams.get('name') || undefined);
       const bytes = doc.exportBytes();
       await writeFile(path.join(EXPORTS, name), bytes);
       res.writeHead(200, { 'content-type': 'application/octet-stream', 'content-disposition': `attachment; filename="${name}"`, 'content-length': bytes.length });

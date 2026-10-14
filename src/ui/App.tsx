@@ -3,6 +3,8 @@ import { useApp, setChatWidth, fail } from '../store';
 import { TopBar } from './TopBar';
 import { Schedule } from './Schedule';
 import { Chat } from './Chat';
+import { SettingsDialog } from './Settings';
+import { STATIC } from '../mode';
 
 export function App() {
   const s = useApp();
@@ -28,6 +30,7 @@ export function App() {
       <div class="center"><Schedule /></div>
       <div class="splitter" onMouseDown={(e) => { e.preventDefault(); dragging.current = true; document.body.classList.add('dragging'); }} />
       <div class="chatpane"><Chat /></div>
+      {STATIC && <SettingsDialog />}
       {s.error && <div class="toast err">{s.error}</div>}
     </div>
   );

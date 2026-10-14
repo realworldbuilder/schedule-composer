@@ -1,6 +1,3 @@
-import { EventEmitter } from 'node:events';
-import { writeFile, mkdir } from 'node:fs/promises';
-import path from 'node:path';
 import { parseXer } from './xer/parse.ts';
 import { serializeXer } from './xer/serialize.ts';
 import type { XerFile } from './xer/types.ts';
@@ -10,8 +7,15 @@ import { snapshotOf, diffSnapshots, compactDiff, type Snapshot, type Patch, type
 
 interface HistoryEntry { label: string; turn: string; xer: XerFile; cpm: CpmResult; snapshot: Snapshot }
 
+type Listener = (patch: Patch) => void;
+
 /** One open XER file: raw tables, typed schedule, CPM result, history, and a 'patch' event stream. */
-export class Document extends EventEmitter {
+export class Document {
+  private listeners = new Set<Listener>();
+  on(_event: 'patch', fn: Listener): this { this.listeners.add(fn); return this; }
+  off(_event: 'patch', fn: Listener): this { this.listeners.delete(fn); return this; }
+  private emit(_event: 'patch', patch: Patch): void { for (const l of this.listeners) l(patch); }
+
   readonly file: string;
   readonly original: Uint8Array;
   xer: XerFile;
@@ -24,7 +28,6 @@ export class Document extends EventEmitter {
   mutations = 0;
 
   constructor(file: string, bytes: Uint8Array) {
-    super();
     this.file = file;
     this.original = bytes;
     this.xer = parseXer(bytes);
@@ -108,12 +111,9 @@ export class Document extends EventEmitter {
     return serializeXer(this.xer);
   }
 
-  async exportTo(dir: string, name?: string): Promise<{ path: string; bytes: number }> {
-    await mkdir(dir, { recursive: true });
-    const base = (name ?? path.basename(this.file, '.xer') + '-edited').replace(/[^\w.-]+/g, '_').replace(/\.xer$/i, '');
-    const p = path.join(dir, `${base}.xer`);
-    const bytes = this.exportBytes();
-    await writeFile(p, bytes);
-    return { path: p, bytes: bytes.length };
+  /** File name for an export of this document. */
+  exportName(name?: string): string {
+    const base = (name ?? this.file.replace(/\.xer$/i, '') + '-edited').replace(/[^\w.-]+/g, '_').replace(/\.xer$/i, '');
+    return `${base}.xer`;
   }
 }

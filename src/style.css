@@ -425,3 +425,14 @@ body.dragging, body.dragging * { cursor: col-resize !important; user-select: non
 .chat-input textarea:focus { box-shadow: inset 0 0 0 1px var(--accent); }
 .chat-input .row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .chat-input .hint-line { color: var(--faint); font-size: 11px; }
+
+/* ---- settings modal (static build) ---- */
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 50; }
+.modal { width: min(440px, calc(100vw - 32px)); background: var(--panel, #161a22); border: 1px solid var(--border, #262b36); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.modal-head { font-weight: 600; font-size: 13px; }
+.modal .muted { color: var(--muted, #8a93a6); font-size: 12px; margin: 0; line-height: 1.4; }
+.modal .field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted, #8a93a6); }
+.modal .field input, .modal .field select { background: var(--bg, #0f1115); color: var(--text, #d7dbe3); border: 1px solid var(--border, #262b36); border-radius: 4px; padding: 6px 8px; font: inherit; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.tb.primary { background: var(--accent, #3b82f6); color: #fff; border-color: transparent; }
+.tb.attn { color: var(--gold, #eab308); border-color: var(--gold, #eab308); }

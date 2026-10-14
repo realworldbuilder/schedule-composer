@@ -1,15 +1,12 @@
 // Build a blank project (root WBS, no activities) from the bundled template XER.
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { parseXer } from '../xer/parse.ts';
+import { parseXer, parseXerText } from '../xer/parse.ts';
 import { serializeXer } from '../xer/serialize.ts';
 import { Schedule } from './model.ts';
 import { fmtP6Date, nowP6, parseP6Date } from './dates.ts';
 
-const TEMPLATE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'samples', 'PredecessorCalendar.xer');
-
 export interface BlankOptions { name: string; code?: string; start: string; hoursPerDay?: number; workDays?: number[] }
+
+/** The template is samples/PredecessorCalendar.xer: the server reads it from disk, the browser build imports it with ?raw. */
 
 const p2 = (n: number) => String(n).padStart(2, '0');
 function shiftsFor(hours: number): string {
@@ -32,13 +29,13 @@ export function codeFrom(name: string): string {
   return c.toUpperCase().slice(0, 12) || 'PROJ';
 }
 
-export function blankProject(o: BlankOptions): { file: string; bytes: Uint8Array } {
+export function blankProject(o: BlankOptions, template: Uint8Array | string): { file: string; bytes: Uint8Array } {
   const start = parseP6Date(o.start.length <= 10 ? `${o.start} 08:00` : o.start);
   if (start === null) throw new Error(`bad start date ${o.start}`);
   const hours = Math.max(1, Math.min(24, o.hoursPerDay ?? 8));
   const workDays = (o.workDays?.length ? o.workDays : [1, 2, 3, 4, 5]).filter((d) => d >= 0 && d <= 6);
   const code = (o.code?.trim() || codeFrom(o.name)).replace(/\s+/g, '-');
-  const s = new Schedule(parseXer(new Uint8Array(readFileSync(TEMPLATE))));
+  const s = new Schedule(typeof template === 'string' ? parseXerText(template) : parseXer(template));
   for (const t of s.tasks()) s.deleteActivity(t.task_id);
   const P = s.project;
   P.set('proj_short_name', code); P.set('task_code_prefix', 'A'); P.set('task_code_base', '1000'); P.set('task_code_step', '10');

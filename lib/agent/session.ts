@@ -3,6 +3,8 @@ import { randomBytes } from 'node:crypto';
 import { query, type Query, type SDKMessage } from '@anthropic-ai/claude-agent-sdk';
 import { SYSTEM_PROMPT } from './prompt.ts';
 import { makeSchedServer, handlers, type ToolCtx } from './tools.ts';
+import { writeFile, mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import type { CompactDiff } from '../schedule/diff.ts';
 import type { Document } from '../state.ts';
 
@@ -77,7 +79,7 @@ export class AgentSession extends EventEmitter {
     const log = this.opts.log ?? (() => {});
     const doc = this.opts.doc();
     if (!doc) { this.ev({ kind: 'turn_end', turn, ok: false, error: 'No schedule is open. Open an XER file first.' }); return; }
-    const ctx: ToolCtx = { doc: () => { const d = this.opts.doc(); if (!d) throw new Error('no schedule open'); return d; }, turn: () => turn, exportDir: this.opts.exportDir };
+    const ctx: ToolCtx = { doc: () => { const d = this.opts.doc(); if (!d) throw new Error('no schedule open'); return d; }, turn: () => turn, saveExport: async (name, bytes) => { await mkdir(this.opts.exportDir, { recursive: true }); const p = path.join(this.opts.exportDir, name); await writeFile(p, bytes); return { path: p, bytes: bytes.length }; } };
     const env: Record<string, string | undefined> = { ...process.env };
     if (this.authMode === 'max-login') delete env.ANTHROPIC_API_KEY;
     env.CLAUDE_AGENT_SDK_CLIENT_APP = 'schedule-composer/0.1';

@@ -1,7 +1,6 @@
 import type { XerFile, XerTable } from '../xer/types.ts';
 import { fmtHours, fmtP6Date, nowP6, parseP6Date, type Ms } from './dates.ts';
 import { buildCal, type CalendarRowLike, type WorkCal } from './calendar.ts';
-import { randomBytes } from 'node:crypto';
 
 export type TaskType = 'TT_Task' | 'TT_Mile' | 'TT_FinMile' | 'TT_LOE' | 'TT_Rsrc' | 'TT_WBS';
 export type StatusCode = 'TK_NotStart' | 'TK_Active' | 'TK_Complete';
@@ -183,7 +182,10 @@ const TASK_CHILD_TABLES: [string, string][] = [
 ];
 
 export function newGuid(): string {
-  return randomBytes(16).toString('base64').replace(/=+$/, '');
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  let bin = ''; for (const x of bytes) bin += String.fromCharCode(x);
+  return btoa(bin).replace(/=+$/, '');
 }
 
 // ---- Schedule -----------------------------------------------------------------------

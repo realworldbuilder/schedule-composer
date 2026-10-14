@@ -4,6 +4,7 @@ import { defineConfig } from 'vitest/config';
 // Dev: Vite serves the page and proxies the API to the Node server (port 4400).
 // Prod: the Node server serves dist/ itself.
 export default defineConfig({
+  base: process.env.VITE_BASE || '/',
   plugins: [preact()],
   server: {
     host: true,

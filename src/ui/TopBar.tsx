@@ -3,6 +3,8 @@ import { useApp, openFile, uploadFile, undo, redo, setFilesOpen, fail } from '..
 import { api, type FileEntry } from '../api';
 import { fmtShort, fmtShortMs, fmtBytes } from '../util';
 import { NewProjectForm } from './NewProject';
+import { STATIC } from '../mode';
+import { openSettings, useSettings } from './Settings';
 
 export function TopBar() {
   const s = useApp();
@@ -25,6 +27,7 @@ export function TopBar() {
   }, [canUndo, canRedo]);
 
   const warn = snap?.warnings.length ?? 0;
+  const local = useSettings();
   return (
     <div class="topbar">
       <div class="tb-left">
@@ -52,6 +55,7 @@ export function TopBar() {
           Redo<svg viewBox="0 0 16 16" class="ico"><path d="M10 4l3.5 3.5L10 11" fill="none" stroke="currentColor" stroke-width="1.4" /><path d="M13 7.5H6.5a3.5 3.5 0 0 0 0 7H8" fill="none" stroke="currentColor" stroke-width="1.4" /></svg>
         </button>
         <a class={`tb ghost ${snap ? '' : 'disabled'}`} href={api.exportUrl()} download title="Download the schedule as an XER file">Export</a>
+        {STATIC && <button class={`tb ghost ${local.settings.apiKey ? '' : 'attn'}`} onClick={openSettings} title="API key and model (stored only in this browser)">{local.settings.apiKey ? 'Agent' : 'API key'}</button>}
         <span class={`agent ${!s.online ? 'off' : s.working ? 'working' : 'idle'}`} title={!s.online ? 'Disconnected from server' : s.working ? 'Agent working' : 'Agent idle'}>
           <span class="dot" />{!s.online && 'offline'}
         </span>
