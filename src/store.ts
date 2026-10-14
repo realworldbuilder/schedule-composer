@@ -68,7 +68,12 @@ const listeners = new Set<() => void>();
 export function notify(): void { for (const l of listeners) l(); }
 export function useApp(): App {
   const [, bump] = useReducer((n: number) => n + 1, 0);
-  useEffect(() => { const fn = () => bump(undefined); listeners.add(fn); return () => { listeners.delete(fn); }; }, []);
+  useEffect(() => {
+    const fn = () => bump(0);
+    listeners.add(fn);
+    fn(); // state may have changed between the first render and this subscription (static build boots before mount)
+    return () => { listeners.delete(fn); };
+  }, []);
   return app;
 }
 

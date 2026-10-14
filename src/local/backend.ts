@@ -42,6 +42,7 @@ function open(file: string, bytes: Uint8Array): Snapshot {
 function need(): Document { if (!doc) throw new ApiError(404, 'no file open'); return doc; }
 
 export function initLocal(): void {
+  try {
   Object.assign(api, {
     health: async () => ({ ok: true, file: doc?.file ?? null, tasks: doc?.snapshot().tasks.length ?? 0, agent: 'api-key', model: getSettings().model }),
     snapshot: async () => need().snapshot(),
@@ -67,4 +68,8 @@ export function initLocal(): void {
   setOnline(true);
   // Start on the bundled sample so there is something to look at.
   setSnapshot(open('generated-200.xer', SAMPLES['samples/generated-200.xer']!()), true);
+  } catch (e) {
+    console.error('initLocal failed', e);
+    throw e;
+  }
 }
