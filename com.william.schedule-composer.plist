@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/Users/williamhussey/.local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+		<key>HOME</key>
+		<string>/Users/williamhussey</string>
+	</dict>
+	<key>Label</key>
+	<string>com.william.schedule-composer</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/opt/homebrew/bin/node</string>
+		<string>server.ts</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+	<key>ThrottleInterval</key>
+	<integer>10</integer>
+	<key>WorkingDirectory</key>
+	<string>/Users/williamhussey/projects/schedule-composer</string>
+	<key>StandardOutPath</key>
+	<string>/Users/williamhussey/Library/Logs/schedule-composer.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/williamhussey/Library/Logs/schedule-composer.log</string>
+</dict>
+</plist>
