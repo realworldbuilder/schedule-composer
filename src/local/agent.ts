@@ -22,6 +22,8 @@ export interface AgentOptions {
   emit: (ev: ChatEvent) => void;
   cost: (model: string, inTok: number, outTok: number) => number;
   saveExport: ToolCtx['saveExport'];
+  /** Test hook: point the client at a mock server. */
+  baseURL?: string;
 }
 
 const MAX_STEPS = 40;
@@ -63,7 +65,7 @@ export class LocalAgent {
     const apiKey = this.opts.apiKey();
     if (!apiKey) { emit({ kind: 'turn_end', turn, ok: false, error: 'No API key. Click "API key" in the top bar and paste an Anthropic key.' }); return; }
     const model = this.opts.model();
-    const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 2 });
+    const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true, maxRetries: 2, ...(this.opts.baseURL ? { baseURL: this.opts.baseURL } : {}) });
     const ctx: ToolCtx = { doc: () => { const d = this.opts.doc(); if (!d) throw new Error('no schedule open'); return d; }, turn: () => turn, saveExport: this.opts.saveExport };
     const snap = doc.snapshot();
     const preface = this.introduced ? '' : `Open schedule: ${doc.file} (${snap.tasks.length} activities, data date ${snap.project.dataDate}, finish ${snap.project.finish}).\n\n`;

@@ -2,7 +2,10 @@
 
 Cursor / Claude Code style editor for Primavera P6 **XER** schedules. A chat pane drives a Claude agent that edits the open schedule through tools; the activity table + Gantt in the browser update live over WebSocket as each tool call lands. Export the XER and import it into P6.
 
-Started 13 Oct 2026. Runs on the Mac mini, port **4400**, bound to 0.0.0.0 (phone: `http://100.76.214.19:4400`).
+Started 13 Oct 2026. GitHub: https://github.com/realworldbuilder/schedule-composer (public, branch `master`). Two ways to run:
+
+- **Server mode** on the Mac mini, port **4400**, bound to 0.0.0.0 (phone: `http://100.76.214.19:4400`): Node server, agent on the Claude Max login through the Agent SDK.
+- **Static mode** on GitHub Pages: https://realworldbuilder.github.io/schedule-composer/ . The whole engine runs in the browser (`src/local/backend.ts`), the agent is a manual tool loop on the Anthropic Messages API (`src/local/agent.ts`, `@anthropic-ai/sdk` with `dangerouslyAllowBrowser`), and the API key + model live in localStorage (top-bar "API key" button, `src/ui/Settings.tsx`). Built with `VITE_STATIC=1 VITE_BASE=/schedule-composer/ pnpm build`; `.github/workflows/pages.yml` deploys on every push to master (tests must pass). Files in static mode: the two bundled samples, Upload, and New project; Export downloads a blob.
 
 ## Layout
 
@@ -11,8 +14,8 @@ server.ts              HTTP + WebSocket + agent wiring. Opens samples/generated-
 lib/xer/               lossless XER parse/serialize (Windows-1252, ragged rows, byte-exact round trip)
 lib/schedule/          dates, calendar (clndr_data), model (typed views + mutations), cpm (forward/backward pass), analyze, diff (wire shapes), blank (new empty project from the template XER)
 lib/state.ts           Document: xer + schedule + cpm + undo history; mutate() reschedules and emits a `patch`
-lib/agent/             prompt.ts (system prompt), tools.ts (zod schemas + handlers + in-process MCP server "sched"), session.ts (Agent SDK query per turn, resume by session id)
-src/                   Preact UI (Vite). TopBar, Schedule (table + Gantt), Chat.
+lib/agent/             prompt.ts (system prompt), handlers.ts (zod schemas, TOOL_SPECS, pure handlers, JSON-schema export; browser-safe), tools.ts (Agent SDK MCP wrapper), session.ts (Agent SDK query per turn, resume by session id)
+src/                   Preact UI (Vite). TopBar, Schedule (table + Gantt), Chat, NewProject, Settings. src/local/ = static-build backend + agent. src/mode.ts = STATIC flag.
 samples/               MPXJ samples + generated-200.xer (tools/sample.mjs). data/ (gitignored): uploads/, exports/, agent/ sessions, server.log
 tools/sample.mjs       generates the sample (--tasks 5000 for a scale file); tools/chat.mjs sends one chat turn from the terminal
 test/                  vitest: xer round trip, calendar, model, cpm hand cases, tool handlers
@@ -38,6 +41,11 @@ launchd: `cp com.william.schedule-composer.plist ~/Library/LaunchAgents/ && laun
 ## Agent auth
 
 The Agent SDK runs the `claude` CLI, which uses William's **Claude Max login** (`~/.claude/.credentials.json`). The server strips `ANTHROPIC_API_KEY` from the subprocess env so the key never wins. Personal use only (Anthropic does not allow offering a Max login to other users). To bill an API key instead: `SC_USE_API_KEY=1` with `ANTHROPIC_API_KEY` set. `SC_MODEL=opus|sonnet|<id>` overrides the model (default: the CLI default, currently Fable 5.1). `cost_usd` in turn_end is the SDK's API-equivalent figure, not a charge on Max.
+
+## Rules
+
+- Everything under `lib/` must stay browser-safe (no `node:*` imports) except `lib/agent/session.ts` and `lib/agent/tools.ts`, which are server-only. The static build imports `lib/state.ts`, `lib/agent/handlers.ts`, `lib/schedule/*` directly.
+- `PROTOCOL.md` is the contract between the UI and both backends; `src/api.ts` is the only place the UI talks to a backend (`Object.assign(api, ...)` swaps it in static mode).
 
 ## P6 facts baked into the engine
 
